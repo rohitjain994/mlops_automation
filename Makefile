@@ -72,10 +72,14 @@ verify:
 	$(KUBECTL) get pods -n $(ARGO_NAMESPACE) -l app=model-serving
 	@echo "Pod Logs:"
 	$(KUBECTL) logs -n $(ARGO_NAMESPACE) -l app=model-serving --tail=20
+	@echo "Service Status:"
+	$(KUBECTL) get svc -n $(ARGO_NAMESPACE) model-service
+	@echo "Service Endpoints:"
+	$(KUBECTL) get endpoints -n $(ARGO_NAMESPACE) model-service
 	@echo "Testing endpoint (in-cluster)..."
-	# Run a temporary curl pod to test the service internally
-	$(KUBECTL) run curl-test --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- http://model-service:5000/health
-	$(KUBECTL) run curl-predict --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- -X POST http://model-service:5000/predict -H 'Content-Type: application/json' -d '{"features": [0.5, -1.2, 3.3, 0.1]}'
+	# Run a temporary curl pod to test the service internally with retries
+	$(KUBECTL) run curl-test --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- curl -v --retry 10 --retry-delay 2 --retry-connrefused http://model-service:5000/health
+	$(KUBECTL) run curl-predict --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- curl -v --retry 10 --retry-delay 2 --retry-connrefused -X POST http://model-service:5000/predict -H 'Content-Type: application/json' -d '{"features": [0.5, -1.2, 3.3, 0.1]}'
 	@echo "Verification successful."
 
 clean:
