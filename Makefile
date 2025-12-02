@@ -72,17 +72,11 @@ verify:
 	$(KUBECTL) get pods -n $(ARGO_NAMESPACE) -l app=model-serving
 	@echo "Pod Logs:"
 	$(KUBECTL) logs -n $(ARGO_NAMESPACE) -l app=model-serving --tail=20
-	@echo "Testing endpoint..."
-	# Forward port in background with logging, bind to all interfaces
-	$(KUBECTL) port-forward svc/model-service -n $(ARGO_NAMESPACE) --address 0.0.0.0 30007:5000 > port-forward.log 2>&1 & \
-	PID=$$!; \
-	echo "Port-forward PID: $$PID"; \
-	sleep 10; \
-	echo "Port-forward logs:"; \
-	cat port-forward.log; \
-	curl -v --retry 5 --retry-delay 2 --retry-connrefused http://127.0.0.1:30007/health; \
-	curl -v --retry 5 --retry-delay 2 --retry-connrefused http://127.0.0.1:30007/predict -H 'Content-Type: application/json' -d '{"features": [0.5, -1.2, 3.3, 0.1]}'; \
-	kill $$PID || true
+	@echo "Testing endpoint (in-cluster)..."
+	# Run a temporary curl pod to test the service internally
+	$(KUBECTL) run curl-test --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- http://model-service:5000/health
+	$(KUBECTL) run curl-predict --image=curlimages/curl --restart=Never -n $(ARGO_NAMESPACE) --rm -i -- -X POST http://model-service:5000/predict -H 'Content-Type: application/json' -d '{"features": [0.5, -1.2, 3.3, 0.1]}'
+	@echo "Verification successful."
 
 clean:
 	@echo "Deleting Kind cluster..."
