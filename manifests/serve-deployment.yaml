@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: model-serving
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: model-serving
+  template:
+    metadata:
+      labels:
+        app: model-serving
+    spec:
+      containers:
+      - name: server
+        image: python:3.9-slim
+        command: ["sh", "-c"]
+        args: 
+        - |
+          apt-get update && apt-get install -y git &&
+          git clone https://github.com/rohitjain994/mlops_automation.git /app &&
+          pip install fastapi uvicorn scikit-learn joblib &&
+          python /app/scripts/serve.py
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: model-storage
+          mountPath: /mnt/data
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: model-pvc
