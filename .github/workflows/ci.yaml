@@ -14,10 +14,8 @@ jobs:
 
     - name: Install Tools
       run: |
-        cd mlops_automation
         make install-tools
 
     - name: Setup Infrastructure
       run: |
-        cd mlops_automation
         make all
