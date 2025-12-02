@@ -19,3 +19,7 @@ jobs:
     - name: Setup Infrastructure
       run: |
         make all
+
+    - name: Run Workflow
+      run: |
+        make submit

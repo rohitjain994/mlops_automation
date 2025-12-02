@@ -57,6 +57,11 @@ infra:
 	$(KUBECTL) apply -f manifests/pvc.yaml
 	@echo "Infrastructure setup complete."
 
+submit:
+	@echo "Submitting Training Workflow..."
+	argo submit -n $(ARGO_NAMESPACE) --watch workflows/train-workflow.yaml
+	@echo "Workflow completed."
+
 clean:
 	@echo "Deleting Kind cluster..."
 	$(KIND) delete cluster --name $(CLUSTER_NAME)

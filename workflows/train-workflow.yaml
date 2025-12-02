@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Workflow
+metadata:
+  generateName: train-model-
+spec:
+  entrypoint: train-dag
+  volumes:
+  - name: model-storage
+    persistentVolumeClaim:
+      claimName: model-pvc
+
+  templates:
+  - name: train-dag
+    dag:
+      tasks:
+      - name: train
+        template: train-model
+
+  - name: train-model
+    inputs:
+      artifacts:
+      - name: source
+        path: /app
+        git:
+          repo: https://github.com/rohitjain994/mlops_automation.git
+          revision: main
+    container:
+      image: python:3.9-slim
+      command: ["sh", "-c"]
+      args: ["pip install scikit-learn joblib && python /app/scripts/train.py"]
+      volumeMounts:
+      - name: model-storage
+        mountPath: /mnt/data
