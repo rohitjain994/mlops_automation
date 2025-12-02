@@ -64,6 +64,20 @@ submit:
 	argo submit -n $(ARGO_NAMESPACE) --watch workflows/train-workflow.yaml
 	@echo "Workflow completed."
 
+verify:
+	@echo "Waiting for Model Serving Deployment..."
+	$(KUBECTL) wait --for=condition=Available deployment/model-serving --timeout=300s
+	@echo "Model Serving is ready."
+	@echo "Testing endpoint..."
+	# Forward port in background
+	$(KUBECTL) port-forward svc/model-service 30007:5000 & \
+	PID=$$!; \
+	sleep 5; \
+	curl -f http://localhost:30007/health; \
+	curl -f http://localhost:30007/predict -H 'Content-Type: application/json' -d '{"features": [0.5, -1.2, 3.3, 0.1]}'; \
+	kill $$PID
+	@echo "Verification successful."
+
 clean:
 	@echo "Deleting Kind cluster..."
 	$(KIND) delete cluster --name $(CLUSTER_NAME)
