@@ -66,11 +66,11 @@ submit:
 
 verify:
 	@echo "Waiting for Model Serving Deployment..."
-	$(KUBECTL) wait --for=condition=Available deployment/model-serving --timeout=300s
+	$(KUBECTL) wait --for=condition=Available deployment/model-serving -n $(ARGO_NAMESPACE) --timeout=300s
 	@echo "Model Serving is ready."
 	@echo "Testing endpoint..."
 	# Forward port in background
-	$(KUBECTL) port-forward svc/model-service 30007:5000 & \
+	$(KUBECTL) port-forward svc/model-service -n $(ARGO_NAMESPACE) 30007:5000 & \
 	PID=$$!; \
 	sleep 5; \
 	curl -f http://localhost:30007/health; \
