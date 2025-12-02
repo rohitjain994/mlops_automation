@@ -54,7 +54,7 @@ argo:
 
 infra:
 	@echo "Setting up infrastructure (PVC)..."
-	$(KUBECTL) apply -f manifests/pvc.yaml
+	$(KUBECTL) apply -n $(ARGO_NAMESPACE) -f manifests/pvc.yaml
 	@echo "Infrastructure setup complete."
 
 submit:
