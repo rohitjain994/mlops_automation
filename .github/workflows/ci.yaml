@@ -1,0 +1,23 @@
+name: Infrastructure CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-infra:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Tools
+      run: |
+        cd mlops_automation
+        make install-tools
+
+    - name: Setup Infrastructure
+      run: |
+        cd mlops_automation
+        make all

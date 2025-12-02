@@ -1,0 +1,16 @@
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Tools (if they get stuck in the dir)
+kind
+kubectl
+argo
+
+# IDE
+.vscode/
+.idea/
