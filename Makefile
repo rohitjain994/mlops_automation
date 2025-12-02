@@ -55,6 +55,8 @@ argo:
 infra:
 	@echo "Setting up infrastructure (PVC)..."
 	$(KUBECTL) apply -n $(ARGO_NAMESPACE) -f manifests/pvc.yaml
+	# Grant admin permissions to default SA for Argo Workflow execution
+	$(KUBECTL) create rolebinding default-admin --clusterrole=admin --serviceaccount=$(ARGO_NAMESPACE):default -n $(ARGO_NAMESPACE) || echo "RoleBinding already exists"
 	@echo "Infrastructure setup complete."
 
 submit:
