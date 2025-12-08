@@ -29,7 +29,7 @@ spec:
         arguments:
           artifacts:
           - name: source-code
-            from: '{{tasks.train.outputs.artifacts.source-code}}'
+            from: '{{tasks.setup-code.outputs.artifacts.source-code}}'
             
       - name: create-service
         dependencies: [train]
@@ -37,7 +37,7 @@ spec:
         arguments:
           artifacts:
           - name: source-code
-            from: '{{tasks.train.outputs.artifacts.source-code}}'
+            from: '{{tasks.setup-code.outputs.artifacts.source-code}}'
             
   - name: clone-repository
     inputs: {}
