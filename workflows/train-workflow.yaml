@@ -13,23 +13,48 @@ spec:
   - name: train-dag
     dag:
       tasks:
+      - name: setup-code
+        template: clone-repository
       - name: train
+        dependencies: [setup-code]
         template: train-model
+        arguments:
+          artifacts:
+          - name: source-code
+            from: '{{tasks.setup-code.outputs.artifacts.source-code}}'
+            
       - name: create-deployment
         dependencies: [train]
         template: create-deployment-resource
+        arguments:
+          artifacts:
+          - name: source-code
+            from: '{{tasks.train.outputs.artifacts.source-code}}'
+            
       - name: create-service
         dependencies: [train]
         template: create-service-resource
+        arguments:
+          artifacts:
+          - name: source-code
+            from: '{{tasks.train.outputs.artifacts.source-code}}'
+            
+  - name: clone-repository
+    inputs: {}
+    outputs:
+      artifacts:
+      - name: source-code
+        path: /app
+    container:
+      image: alpine/git:latest
+      command: ["git", "clone"]
+      args: ["https://github.com/rohitjain994/mlops_automation.git", "/app"]
 
   - name: train-model
     inputs:
       artifacts:
-      - name: source
+      - name: source-code
         path: /app
-        git:
-          repo: https://github.com/rohitjain994/mlops_automation.git
-          revision: main
     container:
       image: python:3.9-slim
       command: ["sh", "-c"]
@@ -41,11 +66,8 @@ spec:
   - name: create-deployment-resource
     inputs:
       artifacts:
-      - name: source
+      - name: source-code
         path: /app
-        git:
-          repo: https://github.com/rohitjain994/mlops_automation.git
-          revision: main
     container:
       image: bitnami/kubectl:latest
       command: [kubectl, apply, -f, /app/manifests/serve-deployment.yaml]
@@ -53,11 +75,8 @@ spec:
   - name: create-service-resource
     inputs:
       artifacts:
-      - name: source
+      - name: source-code
         path: /app
-        git:
-          repo: https://github.com/rohitjain994/mlops_automation.git
-          revision: main
     container:
       image: bitnami/kubectl:latest
       command: [kubectl, apply, -f, /app/manifests/serve-service.yaml]
